@@ -1,0 +1,27 @@
+apiVersion: fission.io/v1
+kind: Environment
+metadata:
+  creationTimestamp: null
+  name: env-get-employ-status-us
+  namespace: default
+spec:
+  builder:
+    command: build
+    image: nexus.sigame.com.br/fission-builder-3.8:0.0.1
+  imagepullsecret: ""
+  keeparchive: false
+  poolsize: 3
+  resources: {}
+  runtime:
+    image: nexus.sigame.com.br/fission-async:0.1.6
+    podspec:
+      containers:
+      - name: env-get-employ-status-us
+        env:
+        - name: ROOT_LOG_LEVEL
+          value: "INFO"
+        - name: ETRIA_LOG_LEVEL
+          value: "INFO"
+        - name: ASGI_FRAMEWORK
+          value: "HYPERCORN"
+  version: 2
