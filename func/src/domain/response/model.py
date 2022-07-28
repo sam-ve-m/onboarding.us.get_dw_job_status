@@ -2,37 +2,31 @@ from json import dumps
 
 from flask import Response
 
-from src.domain.enums.response.code import InternalCode
+from src.domain.response.status_code.enums import StatusCode
 
 
 class ResponseModel:
-    def __init__(
-        self, success: bool, code: InternalCode, message: str = None, result: any = None
-    ):
-        self.success = success
-        self.code = code.value
-        self.message = message
-        self.result = result
-        self.response = self.to_dumps()
-
-    def to_dumps(self) -> str:
+    @staticmethod
+    def build_response(
+        success: bool, code: StatusCode, message: str = None, result: any = None
+    ) -> str:
         response_model = dumps(
             {
-                "result": self.result,
-                "message": self.message,
-                "success": self.success,
-                "code": self.code,
+                "result": result,
+                "message": message,
+                "success": success,
+                "code": code.value,
             }
         )
-        self.response = response_model
         return response_model
 
+    @staticmethod
     def build_http_response(
-        self, status: int, mimetype: str = "application/json"
+        response_model: str, status: int, mimetype: str = "application/json"
     ) -> Response:
-        http_response = Response(
-            self.response,
+        response = Response(
+            response_model,
             mimetype=mimetype,
             status=status,
         )
-        return http_response
+        return response

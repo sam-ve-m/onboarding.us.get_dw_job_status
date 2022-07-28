@@ -1,29 +1,64 @@
 from http import HTTPStatus
 
 from etria_logger import Gladsheim
-from flask import request, Request, Response
+from flask import request, Response, Request
 
-from src.domain.enums.response.code import InternalCode
+from src.domain.exceptions.model import UnauthorizedError
 from src.domain.response.model import ResponseModel
-from src.services.employment_status.service import EmploymentStatusService
+from src.domain.jwt.model import Jwt
+from src.domain.response.status_code.enums import StatusCode
+from src.service.gender_enum.service import GenderEnumService
 
 
-async def get_employment_status_enum(request: Request = request) -> Response:
+def get_enums(request_: Request = request) -> Response:
     try:
-        result = await EmploymentStatusService.get_employment_status_enum()
+        x_thebes_answer = request_.headers.get("x-thebes-answer")
+        Jwt.validate_jwt(x_thebes_answer)
 
-        response = ResponseModel(
-            result=result,
-            success=True,
-            code=InternalCode.SUCCESS,
-            message="Success",
-        ).build_http_response(status=HTTPStatus.OK)
+        service_response = GenderEnumService.get_response()
+        response = ResponseModel.build_http_response(
+            response_model=service_response, status=HTTPStatus.OK
+        )
         return response
 
-    except Exception as ex:
-        message = "Unexpected error occurred"
-        Gladsheim.error(error=ex, message=message)
-        response = ResponseModel(
-            success=False, code=InternalCode.INTERNAL_SERVER_ERROR, message=message
-        ).build_http_response(status=HTTPStatus.INTERNAL_SERVER_ERROR)
+    except UnauthorizedError as error:
+        message = "JWT invalid or not supplied"
+        Gladsheim.error(error=error, message=message)
+        response = ResponseModel.build_http_response(
+            response_model=ResponseModel.build_response(
+                success=False,
+                code=StatusCode.JWT_INVALID,
+                message=message,
+                result=[],
+            ),
+            status=HTTPStatus.NOT_FOUND,
+        )
+        return response
+
+    except TypeError as error:
+        message = "Data not found or inconsistent."
+        Gladsheim.error(error=error, message=message)
+        response = ResponseModel.build_http_response(
+            response_model=ResponseModel.build_response(
+                success=False,
+                code=StatusCode.DATA_NOT_FOUND,
+                message="Data not found or inconsistent.",
+                result=[],
+            ),
+            status=HTTPStatus.NOT_FOUND,
+        )
+        return response
+
+    except Exception as error:
+        message = "Error trying to get the enum."
+        Gladsheim.error(error=error, message=message)
+        response = ResponseModel.build_http_response(
+            response_model=ResponseModel.build_response(
+                success=False,
+                code=StatusCode.INTERNAL_SERVER_ERROR,
+                message="Error trying to get the enum.",
+                result=[],
+            ),
+            status=HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
         return response
