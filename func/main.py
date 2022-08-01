@@ -10,10 +10,10 @@ from src.domain.response.status_code.enums import StatusCode
 from src.service.gender_enum.service import GenderEnumService
 
 
-def get_enums(request_: Request = request) -> Response:
+async def get_enums(request_: Request = request) -> Response:
     try:
         x_thebes_answer = request_.headers.get("x-thebes-answer")
-        Jwt.validate_jwt(x_thebes_answer)
+        await Jwt.validate_jwt(x_thebes_answer)
 
         service_response = GenderEnumService.get_response()
         response = ResponseModel.build_http_response(
