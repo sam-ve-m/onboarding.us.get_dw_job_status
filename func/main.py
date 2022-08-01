@@ -7,7 +7,7 @@ from src.domain.exceptions.model import UnauthorizedError
 from src.domain.response.model import ResponseModel
 from src.domain.jwt.model import Jwt
 from src.domain.response.status_code.enums import StatusCode
-from src.service.gender_enum.service import GenderEnumService
+from src.service.employ_status_enum.service import EmployStatusEnumService
 
 
 async def get_enums(request_: Request = request) -> Response:
@@ -15,7 +15,7 @@ async def get_enums(request_: Request = request) -> Response:
         x_thebes_answer = request_.headers.get("x-thebes-answer")
         await Jwt.validate_jwt(x_thebes_answer)
 
-        service_response = GenderEnumService.get_response()
+        service_response = EmployStatusEnumService.get_response()
         response = ResponseModel.build_http_response(
             response_model=service_response, status=HTTPStatus.OK
         )

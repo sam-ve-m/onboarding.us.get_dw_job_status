@@ -8,7 +8,7 @@ from pytest import mark
 from werkzeug.test import Headers
 
 from main import get_enums
-from src.service.gender_enum.service import GenderEnumService
+from src.service.employ_status_enum.service import EmployStatusEnumService
 
 decoded_jwt_ok = {
     "is_payload_decoded": True,
@@ -24,11 +24,10 @@ decoded_jwt_invalid = {
 service_response_dummy = '{"result": [{"code": "AGRICULTURE", "value": "AGRICULTURE"}, {"code": "EMPLOYED", "value": "EMPLOYED"}, {"code": "RETIRED", "value": "RETIRED"}], "message": null, "success": true, "code": 0}'
 
 
-@patch.object(GenderEnumService, "get_response")
+@mark.asyncio
+@patch.object(EmployStatusEnumService, "get_response")
 @patch.object(Heimdall, "decode_payload")
-def test_get_enums_when_request_is_ok(
-    decode_payload_mock, get_response_mock
-):
+async def test_get_enums_when_request_is_ok(decode_payload_mock, get_response_mock):
     decode_payload_mock.return_value = (decoded_jwt_ok, HeimdallStatusResponses.SUCCESS)
     get_response_mock.return_value = service_response_dummy
 
@@ -37,7 +36,7 @@ def test_get_enums_when_request_is_ok(
         headers=Headers({"x-thebes-answer": "test"}),
     ).request as request:
 
-        get_enums_result = get_enums(request)
+        get_enums_result = await get_enums(request)
 
         assert (
             get_enums_result.data
@@ -47,10 +46,11 @@ def test_get_enums_when_request_is_ok(
         decode_payload_mock.assert_called_with(jwt="test")
 
 
+@mark.asyncio
 @patch.object(Gladsheim, "error")
-@patch.object(GenderEnumService, "get_response")
+@patch.object(EmployStatusEnumService, "get_response")
 @patch.object(Heimdall, "decode_payload")
-def test_get_enums_when_jwt_is_invalid(
+async def test_get_enums_when_jwt_is_invalid(
     decode_payload_mock, get_response_mock, etria_mock
 ):
     decode_payload_mock.return_value = (
@@ -64,7 +64,7 @@ def test_get_enums_when_jwt_is_invalid(
         headers=Headers({"x-thebes-answer": "test_error"}),
     ).request as request:
 
-        get_enums_result = get_enums(request)
+        get_enums_result = await get_enums(request)
 
         assert (
             get_enums_result.data
@@ -75,10 +75,11 @@ def test_get_enums_when_jwt_is_invalid(
         etria_mock.assert_called()
 
 
+@mark.asyncio
 @patch.object(Gladsheim, "error")
-@patch.object(GenderEnumService, "get_response")
+@patch.object(EmployStatusEnumService, "get_response")
 @patch.object(Heimdall, "decode_payload")
-def test_get_enums_when_type_error_happens(
+async def test_get_enums_when_type_error_happens(
     decode_payload_mock, get_response_mock, etria_mock
 ):
     decode_payload_mock.return_value = (decoded_jwt_ok, HeimdallStatusResponses.SUCCESS)
@@ -89,7 +90,7 @@ def test_get_enums_when_type_error_happens(
         headers=Headers({"x-thebes-answer": "test"}),
     ).request as request:
 
-        get_enums_result = get_enums(request)
+        get_enums_result = await get_enums(request)
 
         assert (
             get_enums_result.data
@@ -100,10 +101,11 @@ def test_get_enums_when_type_error_happens(
         etria_mock.assert_called()
 
 
+@mark.asyncio
 @patch.object(Gladsheim, "error")
-@patch.object(GenderEnumService, "get_response")
+@patch.object(EmployStatusEnumService, "get_response")
 @patch.object(Heimdall, "decode_payload")
-def test_get_enums_when_generic_exception_happens(
+async def test_get_enums_when_generic_exception_happens(
     decode_payload_mock, get_response_mock, etria_mock
 ):
     decode_payload_mock.return_value = (decoded_jwt_ok, HeimdallStatusResponses.SUCCESS)
@@ -114,7 +116,7 @@ def test_get_enums_when_generic_exception_happens(
         headers=Headers({"x-thebes-answer": "test"}),
     ).request as request:
 
-        get_enums_result = get_enums(request)
+        get_enums_result = await get_enums(request)
 
         assert (
             get_enums_result.data

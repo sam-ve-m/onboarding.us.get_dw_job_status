@@ -3,18 +3,18 @@ from typing import Union
 from etria_logger import Gladsheim
 from mnemosine import SyncCache
 
-from src.core.interfaces.repository.enum_gender_cache.interface import (
-    IEnumGenderCacheRepository,
+from src.core.interfaces.repository.enum_employ_status_cache.interface import (
+    IEnumEmployStatusCacheRepository,
 )
 
 
-class EnumGenderCacheRepository(IEnumGenderCacheRepository):
+class EnumEmployStatusCacheRepository(IEnumEmployStatusCacheRepository):
     enum_key = "jormungandr:EnumEmployStatus"
 
     @classmethod
-    def save_enum_gender(cls, enum_gender: list, time: int = 3600) -> bool:
+    def save_enum_employ_status(cls, enum: list, time: int = 3600) -> bool:
         try:
-            SyncCache.save(cls.enum_key, list(enum_gender), int(time))
+            SyncCache.save(cls.enum_key, list(enum), int(time))
             return True
         except ValueError as error:
             Gladsheim.error(error=error, message="Error saving enum in cache.")
@@ -27,6 +27,10 @@ class EnumGenderCacheRepository(IEnumGenderCacheRepository):
             return False
 
     @classmethod
-    def get_enum_gender(cls) -> Union[list, None]:
-        result = SyncCache.get(cls.enum_key)
+    def get_enum_employ_status(cls) -> Union[list, None]:
+        result = None
+        try:
+            result = SyncCache.get(cls.enum_key)
+        except Exception as error:
+            Gladsheim.error(error=error, message="Error getting enum in cache.")
         return result

@@ -1,15 +1,17 @@
-from src.core.interfaces.service.gender_enum.interface import IGenderEnumService
+from src.core.interfaces.service.employ_status_enum.interface import (
+    IEmployStatusEnumService,
+)
 from src.domain.response.model import ResponseModel
 from src.domain.response.status_code.enums import StatusCode
-from src.repository.gender_enum.repository import GenderEnumRepository
+from src.repository.employ_status_enum.repository import EmployStatusEnumRepository
 
 
-class GenderEnumService(IGenderEnumService):
+class EmployStatusEnumService(IEmployStatusEnumService):
     @classmethod
     def get_response(cls):
         service_response = []
 
-        enums = GenderEnumRepository.get_gender_enum()
+        enums = EmployStatusEnumRepository.get_employ_status_enum()
         for code, value in enums:
             service_response.append({"code": code, "value": value})
 

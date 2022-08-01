@@ -21,6 +21,8 @@ spec:
       containers:
       - name: env-get-employ-status-us
         env:
+          - name: MNEMOSINE_REDIS_HOST
+            value: "redis://jormungandr:oUjqwnmdDSA391dja@172.30.11.235:6379"
           - name: ORACLE_BASE_DSN
             value: "172.30.10.227"
           - name: ORACLE_USER
