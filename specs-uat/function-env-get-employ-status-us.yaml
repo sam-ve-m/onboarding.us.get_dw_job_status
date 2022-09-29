@@ -51,5 +51,5 @@ spec:
     packageref:
       name: env-get-employ-status-us-2523f931-0c00-48ab-86c2-01c2420fb98b
       namespace: default
-  requestsPerPod: 1
+  requestsPerPod: 10000
   resources: {}
