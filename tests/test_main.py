@@ -1,127 +1,88 @@
+# PROJECT IMPORTS
+import logging.config
+from http import HTTPStatus
+from unittest.mock import MagicMock
 from unittest.mock import patch
 
-from etria_logger import Gladsheim
-from flask import Flask
-from heimdall_client.bifrost import Heimdall
-from heimdall_client.bifrost import HeimdallStatusResponses
-from pytest import mark
-from werkzeug.test import Headers
+import flask
+import pytest
+from decouple import RepositoryEnv, Config
 
-from main import get_enums
-from src.service.employ_status_enum.service import EmployStatusEnumService
-
-decoded_jwt_ok = {
-    "is_payload_decoded": True,
-    "decoded_jwt": {"user": {"unique_id": "test"}},
-    "message": "Jwt decoded",
-}
-decoded_jwt_invalid = {
-    "is_payload_decoded": False,
-    "decoded_jwt": {"user": {"unique_id": "test_error"}},
-    "message": "Jwt decoded",
-}
-
-service_response_dummy = '{"result": [{"code": "AGRICULTURE", "value": "AGRICULTURE"}, {"code": "EMPLOYED", "value": "EMPLOYED"}, {"code": "RETIRED", "value": "RETIRED"}], "message": null, "success": true, "code": 0}'
+with patch.object(RepositoryEnv, "__init__", return_value=None):
+    with patch.object(Config, "__init__", return_value=None):
+        with patch.object(Config, "__call__"):
+            with patch.object(logging.config, "dictConfig"):
+                from etria_logger import Gladsheim
+                from main import get_enums
+                from src.domain.enums.status_code.enum import InternalCode
+                from src.domain.models.response.model import ResponseModel
+                from src.domain.exceptions.exceptions import FailToFetchData
+                from src.services.employ_status.service import EmployStatusService
 
 
-@mark.asyncio
-@patch.object(EmployStatusEnumService, "get_response")
-@patch.object(Heimdall, "decode_payload")
-async def test_get_enums_when_request_is_ok(decode_payload_mock, get_response_mock):
-    decode_payload_mock.return_value = (decoded_jwt_ok, HeimdallStatusResponses.SUCCESS)
-    get_response_mock.return_value = service_response_dummy
-
-    app = Flask(__name__)
-    with app.test_request_context(
-        headers=Headers({"x-thebes-answer": "test"}),
-    ).request as request:
-
-        get_enums_result = await get_enums(request)
-
-        assert (
-            get_enums_result.data
-            == b'{"result": [{"code": "AGRICULTURE", "value": "AGRICULTURE"}, {"code": "EMPLOYED", "value": "EMPLOYED"}, {"code": "RETIRED", "value": "RETIRED"}], "message": null, "success": true, "code": 0}'
-        )
-        assert get_response_mock.called
-        decode_payload_mock.assert_called_with(jwt="test")
+fail_to_fetch_data_case = (
+    FailToFetchData(),
+    FailToFetchData.msg,
+    InternalCode.INTERNAL_SERVER_ERROR,
+    "Not able to get or save data in database",
+    HTTPStatus.INTERNAL_SERVER_ERROR
+)
+exception_case = (
+    Exception("dummy"),
+    "dummy",
+    InternalCode.INTERNAL_SERVER_ERROR,
+    "Something went wrong",
+    HTTPStatus.INTERNAL_SERVER_ERROR
+)
 
 
-@mark.asyncio
+@pytest.mark.asyncio
+@pytest.mark.parametrize("exception,error_message,internal_status_code,response_message,response_status_code", [
+    fail_to_fetch_data_case,
+    exception_case,
+])
+@patch.object(EmployStatusService, "get_employ_status_response")
 @patch.object(Gladsheim, "error")
-@patch.object(EmployStatusEnumService, "get_response")
-@patch.object(Heimdall, "decode_payload")
-async def test_get_enums_when_jwt_is_invalid(
-    decode_payload_mock, get_response_mock, etria_mock
+@patch.object(ResponseModel, "__init__", return_value=None)
+@patch.object(ResponseModel, "build_http_response")
+async def test_get_employ_status_raising_errors(
+            mocked_build_response, mocked_response_instance,
+            mocked_logger, mocked_service, monkeypatch,
+            exception, error_message, internal_status_code, response_message, response_status_code,
 ):
-    decode_payload_mock.return_value = (
-        decoded_jwt_invalid,
-        HeimdallStatusResponses.INVALID_TOKEN,
+    monkeypatch.setattr(flask, "request", MagicMock())
+    mocked_service.side_effect = exception
+    await get_enums()
+    mocked_logger.assert_called_once_with(error=exception, message=error_message)
+    mocked_response_instance.assert_called_once_with(
+        success=False,
+        code=internal_status_code.value,
+        message=response_message
     )
-    get_response_mock.return_value = True
-
-    app = Flask(__name__)
-    with app.test_request_context(
-        headers=Headers({"x-thebes-answer": "test_error"}),
-    ).request as request:
-
-        get_enums_result = await get_enums(request)
-
-        assert (
-            get_enums_result.data
-            == b'{"result": [], "message": "JWT invalid or not supplied", "success": false, "code": 30}'
-        )
-        assert not get_response_mock.called
-        decode_payload_mock.assert_called_with(jwt="test_error")
-        etria_mock.assert_called()
+    mocked_build_response.assert_called_once_with(status=response_status_code)
 
 
-@mark.asyncio
+dummy_response = "response"
+
+
+@pytest.mark.asyncio
+@patch.object(EmployStatusService, "get_employ_status_response", return_value=dummy_response)
 @patch.object(Gladsheim, "error")
-@patch.object(EmployStatusEnumService, "get_response")
-@patch.object(Heimdall, "decode_payload")
-async def test_get_enums_when_type_error_happens(
-    decode_payload_mock, get_response_mock, etria_mock
+@patch.object(ResponseModel, "__init__", return_value=None)
+@patch.object(ResponseModel, "build_http_response", return_value=dummy_response)
+async def test_get_employ_status(
+        mocked_build_response, mocked_response_instance,
+        mocked_logger, mocked_service, monkeypatch,
 ):
-    decode_payload_mock.return_value = (decoded_jwt_ok, HeimdallStatusResponses.SUCCESS)
-    get_response_mock.side_effect = TypeError("erro")
-
-    app = Flask(__name__)
-    with app.test_request_context(
-        headers=Headers({"x-thebes-answer": "test"}),
-    ).request as request:
-
-        get_enums_result = await get_enums(request)
-
-        assert (
-            get_enums_result.data
-            == b'{"result": [], "message": "Data not found or inconsistent.", "success": false, "code": 99}'
-        )
-        assert get_response_mock.called
-        decode_payload_mock.assert_called_with(jwt="test")
-        etria_mock.assert_called()
-
-
-@mark.asyncio
-@patch.object(Gladsheim, "error")
-@patch.object(EmployStatusEnumService, "get_response")
-@patch.object(Heimdall, "decode_payload")
-async def test_get_enums_when_generic_exception_happens(
-    decode_payload_mock, get_response_mock, etria_mock
-):
-    decode_payload_mock.return_value = (decoded_jwt_ok, HeimdallStatusResponses.SUCCESS)
-    get_response_mock.side_effect = Exception("erro")
-
-    app = Flask(__name__)
-    with app.test_request_context(
-        headers=Headers({"x-thebes-answer": "test"}),
-    ).request as request:
-
-        get_enums_result = await get_enums(request)
-
-        assert (
-            get_enums_result.data
-            == b'{"result": [], "message": "Error trying to get the enum.", "success": false, "code": 100}'
-        )
-        assert get_response_mock.called
-        decode_payload_mock.assert_called_with(jwt="test")
-        etria_mock.assert_called()
+    monkeypatch.setattr(flask, "request", MagicMock())
+    response = await get_enums()
+    mocked_service.assert_called()
+    mocked_logger.assert_not_called()
+    mocked_response_instance.assert_called_once_with(
+        result=dummy_response,
+        success=True,
+        code=InternalCode.SUCCESS.value,
+        message='SUCCESS',
+    )
+    mocked_build_response.assert_called_once_with(status=HTTPStatus.OK)
+    assert dummy_response == response
