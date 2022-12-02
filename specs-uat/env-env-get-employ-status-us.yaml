@@ -23,7 +23,7 @@ spec:
             value: "INFO"
           - name: ETRIA_LOG_LEVEL
             value: "INFO"
-          - name: ORACLE_BASE_DSN
+          - name: ORACLE_CONNECTION_STRING
             value: "ujormdb001/YhrewmJDSA76hba@(DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)(HOST=172.30.18.44)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=opdbuat.subpriv.vcnuat.oraclevcn.com)))"
           - name: ASGI_FRAMEWORK
             value: "HYPERCORN"
