@@ -1,8 +1,8 @@
 from typing import List
 
-from src.domain.models.employ_status.model import EmployStatusModel
-from src.repositories.cache.repository import EmployStatusCacheRepository
-from src.repositories.oracle.repository import EmployStatusOracleRepository
+from func.src.domain.models.employ_status.model import EmployStatusModel
+from func.src.repositories.cache.repository import EmployStatusCacheRepository
+from func.src.repositories.oracle.repository import EmployStatusOracleRepository
 
 
 class EmployStatusService:

@@ -2,7 +2,7 @@
 from typing import List
 
 # PROJECT IMPORTS
-from src.domain.models.employ_status.model import EmployStatusModel, EmployStatusResponse
+from func.src.domain.models.employ_status.model import EmployStatusModel, EmployStatusResponse
 
 
 class EmployStatusToResponse:
