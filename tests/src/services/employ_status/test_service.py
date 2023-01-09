@@ -1,9 +1,9 @@
 from unittest.mock import patch
 
-from src.domain.models.employ_status.model import EmployStatusModel
-from src.repositories.cache.repository import EmployStatusCacheRepository
-from src.repositories.oracle.repository import EmployStatusOracleRepository
-from src.services.employ_status.service import EmployStatusService
+from func.src.domain.models.employ_status.model import EmployStatusModel
+from func.src.repositories.cache.repository import EmployStatusCacheRepository
+from func.src.repositories.oracle.repository import EmployStatusOracleRepository
+from func.src.services.employ_status.service import EmployStatusService
 
 
 @patch.object(EmployStatusCacheRepository, "get_employ_status_enum")

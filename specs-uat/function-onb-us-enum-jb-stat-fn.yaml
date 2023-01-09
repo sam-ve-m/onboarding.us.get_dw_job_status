@@ -1,55 +1,61 @@
 include:
-- ./func/*
+- fission.py
 kind: ArchiveUploadSpec
-name: func-mg5t
+name: fission-py-esXX
 
 ---
 apiVersion: fission.io/v1
 kind: Package
 metadata:
   creationTimestamp: null
-  name: env-get-employ-status-us-2523f931-0c00-48ab-86c2-01c2420fb98b
+  name: onb-us-enum-jb-stat-fn-5494e0d1-f544-4895-8898-89a4664263cc
   namespace: default
 spec:
   deployment:
     checksum: {}
+    type: url
+    url: archive://fission-py-esXX
   environment:
-    name: env-get-employ-status-us
+    name: onb-us-enum-jb-stat-env
     namespace: default
   source:
     checksum: {}
-    type: url
-    url: archive://func-mg5t
 status:
-  buildstatus: pending
-  lastUpdateTimestamp: "2022-08-01T17:39:03Z"
+  buildstatus: none
+  lastUpdateTimestamp: "2023-01-06T10:23:15Z"
 
 ---
 apiVersion: fission.io/v1
 kind: Function
 metadata:
   creationTimestamp: null
-  name: env-get-employ-status-us
+  name: onb-us-enum-jb-stat-fn
   namespace: default
 spec:
   InvokeStrategy:
     ExecutionStrategy:
       ExecutorType: newdeploy
-      MaxScale: 1
+      MaxScale: 3
       MinScale: 1
       SpecializationTimeout: 120
-      TargetCPUPercent: 80
+      TargetCPUPercent: 0
+      hpaMetrics:
+      - resource:
+          name: cpu
+          target:
+            averageUtilization: 80
+            type: Utilization
+        type: Resource
     StrategyType: execution
   concurrency: 500
   environment:
-    name: env-get-employ-status-us
+    name: onb-us-enum-jb-stat-env
     namespace: default
   functionTimeout: 60
   idletimeout: 120
   package:
-    functionName: main.get_enums
     packageref:
-      name: env-get-employ-status-us-2523f931-0c00-48ab-86c2-01c2420fb98b
+      name: onb-us-enum-jb-stat-fn-5494e0d1-f544-4895-8898-89a4664263cc
       namespace: default
   requestsPerPod: 10000
   resources: {}
