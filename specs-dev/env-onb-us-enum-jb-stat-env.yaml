@@ -5,17 +5,17 @@ metadata:
   name: onb-us-enum-jb-stat-env
   namespace: default
 spec:
-  builder:
-    container:
-      name: ""
-      resources: {}
   imagepullsecret: nexus-v3
   keeparchive: false
-  resources: {}
+  poolsize: 1
+  resources:
+    requests:
+      cpu: 128m
+      memory: 128Mi
+    limits:
+      cpu: 256m
+      memory: 256Mi
   runtime:
-    container:
-      name: ""
-      resources: {}
     image: nexus.sigame.com.br/fission-onboarding-us-enum-job-status:0.2.0-0
     podspec:
       containers:
@@ -35,4 +35,5 @@ spec:
             value: "INFO"
           - name: ASGI_FRAMEWORK
             value: "HYPERCORN"
+  terminationGracePeriod: 3
   version: 3
